@@ -479,7 +479,7 @@
                 </div>
             );
 
-            if (appState === 'lobby') return (
+            if (appState === 'lobby' && gameState.status === 'waiting') return (
                 <div className="flex flex-col items-center justify-center h-full p-6 bg-slate-50">
                     <div className="bg-white p-8 rounded-3xl shadow-xl w-full max-w-md text-center border-2 border-slate-100 relative overflow-hidden">
                         
