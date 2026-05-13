@@ -277,7 +277,13 @@
                     });
                     
                     conn.on('data', (data) => {
-                        if (data.type === 'SYNC') setGameState(data.payload);
+                        if (data.type === 'SYNC') {
+                            setGameState(data.payload);
+                            // Explicitly force peer into game view if the game has started
+                            if (data.payload.status !== 'waiting') {
+                                setAppState('game');
+                            }
+                        }
                         else if (data.type === 'TOAST') showToast(data.payload);
                     });
                     
@@ -305,6 +311,7 @@
 
             const startGame = () => {
                 if (role !== 'host') return;
+                setAppState('game'); // Explicitly force view change for the host
                 updateHostState(draft => {
                     draft.status = 'playing';
                     draft.players.forEach(p => p.score = 0);
@@ -314,6 +321,7 @@
 
             const restartGame = () => {
                 if (role !== 'host') return;
+                setAppState('game');
                 updateHostState(draft => {
                     draft.status = 'playing';
                     draft.players.forEach(p => p.score = 0);
@@ -479,7 +487,7 @@
                 </div>
             );
 
-            if (appState === 'lobby' && gameState.status === 'waiting') return (
+            if (appState === 'lobby') return (
                 <div className="flex flex-col items-center justify-center h-full p-6 bg-slate-50">
                     <div className="bg-white p-8 rounded-3xl shadow-xl w-full max-w-md text-center border-2 border-slate-100 relative overflow-hidden">
                         
@@ -514,7 +522,7 @@
             );
 
             // GAME VIEW
-            return (
+            if (appState === 'game') return (
                 <div className="flex flex-col h-full bg-orange-50 relative">
                     {/* Header / Scores */}
                     <header className="bg-white border-b-2 border-slate-200 p-4 shadow-sm z-10 flex-shrink-0">
@@ -606,6 +614,8 @@
                     )}
                 </div>
             );
+            
+            return null;
         };
 
         const root = ReactDOM.createRoot(document.getElementById('root'));
