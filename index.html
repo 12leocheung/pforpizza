@@ -353,7 +353,7 @@
                     line2 = words.slice(mid).join(' ');
                 }
                 return (
-                    <text x={x} y={y} transform={`rotate(${angle} ${x} ${y})`} textAnchor="middle" dominantBaseline="middle" fontSize={fontSize} fontWeight={isBold ? '900' : '700'} fill="#1e293b">
+                    <text x={x} y={y} transform={`rotate(${angle} ${x} ${y})`} textAnchor="middle" dominantBaseline="central" fontSize={fontSize} fontWeight={isBold ? '900' : '700'} fill="#1e293b">
                         {line2 ? (
                             <>
                                 <tspan x={x} dy="-0.6em">{line1}</tspan>
@@ -380,21 +380,21 @@
                             <g filter="url(#shadow)">
                                 {/* Top Card (Yellow) */}
                                 <polygon points="150,230 350,230 250,56.8" fill="#ffcc00" stroke="#1e293b" strokeWidth="12" strokeLinejoin="round" />
-                                <SvgText x={250} y={205} angle={0} text={letters.topCard.active} fontSize="46" isBold={true} />
-                                <SvgText x={210} y={110} angle={-60} text={letters.topCard.l1} fontSize="32" isBold={true} />
-                                <SvgText x={290} y={110} angle={60} text={letters.topCard.l2} fontSize="32" isBold={true} />
+                                <SvgText x={250} y={202} angle={0} text={letters.topCard.active} fontSize="46" isBold={true} />
+                                <SvgText x={219} y={154} angle={-60} text={letters.topCard.l1} fontSize="32" isBold={true} />
+                                <SvgText x={281} y={154} angle={60} text={letters.topCard.l2} fontSize="32" isBold={true} />
 
                                 {/* Left Card (Yellow) */}
                                 <polygon points="150,230 250,403.2 50,403.2" fill="#ffcc00" stroke="#1e293b" strokeWidth="12" strokeLinejoin="round" />
-                                <SvgText x={175} y={316.6} angle={60} text={letters.leftCard.active} fontSize="46" isBold={true} />
-                                <SvgText x={150} y={380} angle={0} text={letters.leftCard.l1} fontSize="32" isBold={true} />
-                                <SvgText x={85} y={316.6} angle={-60} text={letters.leftCard.l2} fontSize="32" isBold={true} />
+                                <SvgText x={176} y={331} angle={60} text={letters.leftCard.active} fontSize="46" isBold={true} />
+                                <SvgText x={150} y={381} angle={0} text={letters.leftCard.l1} fontSize="32" isBold={true} />
+                                <SvgText x={119} y={328} angle={-60} text={letters.leftCard.l2} fontSize="32" isBold={true} />
 
                                 {/* Right Card (Yellow) */}
                                 <polygon points="350,230 250,403.2 450,403.2" fill="#ffcc00" stroke="#1e293b" strokeWidth="12" strokeLinejoin="round" />
-                                <SvgText x={325} y={316.6} angle={-60} text={letters.rightCard.active} fontSize="46" isBold={true} />
-                                <SvgText x={350} y={380} angle={0} text={letters.rightCard.l1} fontSize="32" isBold={true} />
-                                <SvgText x={415} y={316.6} angle={60} text={letters.rightCard.l2} fontSize="32" isBold={true} />
+                                <SvgText x={324} y={331} angle={-60} text={letters.rightCard.active} fontSize="46" isBold={true} />
+                                <SvgText x={350} y={381} angle={0} text={letters.rightCard.l1} fontSize="32" isBold={true} />
+                                <SvgText x={381} y={328} angle={60} text={letters.rightCard.l2} fontSize="32" isBold={true} />
 
                                 {/* Center Card Inner Colored Slices */}
                                 <polygon points="150,230 350,230 250,287.7" fill="#ffb3ba" />
