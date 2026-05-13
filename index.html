@@ -3,753 +3,127 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>P for Pizza 🍕</title>
+    <title>P for Pizza Online</title>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts for Cartoon Style -->
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <!-- React & ReactDOM -->
     <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <!-- Babel for JSX -->
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <!-- PeerJS for WebRTC Multiplayer -->
     <script src="https://unpkg.com/peerjs@1.5.1/dist/peerjs.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@700;800;900&display=swap" rel="stylesheet">
 
     <style>
-        * { box-sizing: border-box; }
         body {
-            font-family: 'Nunito', sans-serif;
-            background: #fffbe6;
-            overflow: hidden;
-            height: 100vh;
-            touch-action: manipulation;
+            background-color: #fffaf0; 
+            touch-action: manipulation; 
+            font-family: 'Fredoka', sans-serif;
             -webkit-tap-highlight-color: transparent;
         }
-        .fredoka { font-family: 'Fredoka One', cursive; }
 
-        /* ---- BACKGROUND DOODLES ---- */
-        .bg-doodle {
-            position: fixed; inset: 0; pointer-events: none; z-index: 0;
-            overflow: hidden;
-        }
-        .doodle-item {
-            position: absolute;
-            font-size: 2.5rem;
-            opacity: 0.07;
-            animation: floatDoodle 8s ease-in-out infinite;
-            user-select: none;
-        }
-        @keyframes floatDoodle {
-            0%,100% { transform: translateY(0) rotate(0deg); }
-            50% { transform: translateY(-12px) rotate(8deg); }
-        }
-
-        /* ---- PIZZA TRIANGLE CARDS ---- */
-        .pizza-card-wrap {
-            position: relative;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .pizza-svg-card {
-            filter: drop-shadow(0 6px 12px rgba(0,0,0,0.18));
-            transition: transform 0.2s cubic-bezier(.34,1.56,.64,1);
-            cursor: default;
-        }
-        .pizza-svg-card.wobble {
-            animation: wobbleIn 0.5s cubic-bezier(.34,1.56,.64,1) forwards;
-        }
-        @keyframes wobbleIn {
-            0% { transform: scale(0.4) rotate(-15deg); opacity:0; }
-            70% { transform: scale(1.08) rotate(3deg); }
-            100% { transform: scale(1) rotate(0deg); opacity:1; }
-        }
-
-        /* ---- BUZZ BUTTON ---- */
-        .buzz-btn {
-            background: #ff3b3b;
-            color: white;
-            border: none;
-            border-radius: 50%;
-            box-shadow: 0 8px 0 #b71c1c, 0 12px 24px rgba(255,59,59,0.4);
-            transition: transform 0.1s, box-shadow 0.1s;
-            cursor: pointer;
-            font-family: 'Fredoka One', cursive;
-            letter-spacing: 0.05em;
-            user-select: none;
-        }
-        .buzz-btn:active {
-            transform: translateY(6px);
-            box-shadow: 0 2px 0 #b71c1c, 0 4px 8px rgba(255,59,59,0.3);
-        }
-        .buzz-btn.bouncing {
-            animation: buzzBounce 0.6s cubic-bezier(.34,1.56,.64,1);
-        }
-        @keyframes buzzBounce {
-            0% { transform: scale(1); }
-            40% { transform: scale(1.2); }
-            70% { transform: scale(0.9); }
-            100% { transform: scale(1); }
-        }
-
-        /* ---- TIMER BAR ---- */
-        .timer-fill {
-            height: 100%;
-            border-radius: 9999px;
-            animation: timerShrink 5s linear forwards;
-            background: linear-gradient(90deg, #ff3b3b, #ff9f0a);
-        }
-        @keyframes timerShrink {
+        /* Animations */
+        @keyframes shrink {
             from { width: 100%; }
             to { width: 0%; }
         }
-
-        /* ---- OVERLAYS ---- */
-        .overlay-slide {
-            animation: overlayIn 0.3s cubic-bezier(.34,1.56,.64,1);
-        }
-        @keyframes overlayIn {
-            from { opacity: 0; transform: scale(0.92) translateY(20px); }
-            to { opacity: 1; transform: scale(1) translateY(0); }
+        .timer-bar {
+            animation: shrink 5s linear forwards;
         }
 
-        /* ---- TOAST ---- */
-        .toast-pop {
-            animation: toastIn 0.35s cubic-bezier(.34,1.56,.64,1);
+        @keyframes slideIn {
+            from { transform: translateY(-20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
         }
-        @keyframes toastIn {
-            from { opacity: 0; transform: translateX(-50%) translateY(-20px) scale(0.8); }
-            to { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
+        .toast-enter {
+            animation: slideIn 0.3s ease-out forwards;
         }
 
-        /* ---- SCORE PIZZA SLICES ---- */
-        .slice-earned {
-            animation: slicePop 0.4s cubic-bezier(.34,1.56,.64,1);
-        }
-        @keyframes slicePop {
-            0% { transform: scale(0); }
-            70% { transform: scale(1.3); }
+        @keyframes popup {
+            0% { transform: scale(0.5); opacity: 0; }
+            50% { transform: scale(1.05); opacity: 1; }
             100% { transform: scale(1); }
         }
-
-        /* ---- CARD AREA SPIN ---- */
-        .cards-appear {
-            animation: cardsIn 0.5s cubic-bezier(.34,1.56,.64,1) forwards;
-        }
-        @keyframes cardsIn {
-            from { opacity: 0; transform: scale(0.7) rotate(-5deg); }
-            to { opacity: 1; transform: scale(1) rotate(0deg); }
+        .animate-popup {
+            animation: popup 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
         }
 
-        /* ---- SPINNER ---- */
-        .spin { animation: spin360 0.8s linear infinite; }
-        @keyframes spin360 { to { transform: rotate(360deg); } }
-
-        /* ---- VOTE BUTTONS ---- */
-        .vote-cat-btn {
-            border-radius: 1rem;
-            font-family: 'Fredoka One', cursive;
-            font-size: 1rem;
-            padding: 0.6rem 0.5rem;
-            cursor: pointer;
-            border: 3px solid;
-            transition: transform 0.15s, box-shadow 0.15s;
-            user-select: none;
-            text-align: center;
+        @keyframes wobble {
+            0%, 100% { transform: rotate(0deg); }
+            25% { transform: rotate(-3deg); }
+            75% { transform: rotate(3deg); }
         }
-        .vote-cat-btn:active { transform: scale(0.93); }
-
-        /* ---- ANSWER INPUT ---- */
-        .answer-input {
-            font-family: 'Fredoka One', cursive;
-            font-size: 2rem;
-            text-align: center;
-            border: 4px solid #fbbf24;
-            border-radius: 1rem;
-            padding: 0.75rem;
-            width: 100%;
-            outline: none;
-            box-shadow: 0 0 0 4px rgba(251,191,36,0.2);
-            background: white;
-            color: #1e293b;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-        .answer-input:focus {
-            box-shadow: 0 0 0 6px rgba(251,191,36,0.4);
+        .hover-wobble:hover {
+            animation: wobble 0.4s ease-in-out infinite;
         }
 
-        /* ---- SCROLLBAR ---- */
-        ::-webkit-scrollbar { width: 4px; }
-        ::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 999px; }
-
-        /* Mobile safe area */
-        .safe-bottom { padding-bottom: env(safe-area-inset-bottom, 12px); }
+        /* Hide Scrollbar */
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
 </head>
-<body>
-    <div id="root"></div>
+<body class="text-slate-800 h-screen flex flex-col overflow-hidden">
+    <div id="root" class="flex-grow flex flex-col h-full w-full max-w-4xl mx-auto relative shadow-2xl bg-white border-x border-slate-100"></div>
 
     <script type="text/babel">
-        const { useState, useEffect, useRef, useCallback } = React;
+        const { useState, useEffect, useRef } = React;
 
         // --- GAME DATA ---
         const LETTERS = ['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','R','S','T','W'];
         const CATEGORIES = [
-            "Pizza Toppings", "Things that are green", "Countries", "Musical Instruments", "Sports",
-            "Capital Cities", "Animals", "Things in a kitchen", "Fruits", "Vegetables",
-            "Movies", "Fictional Characters", "Brands", "Things that are loud", "Things that are soft",
-            "Things you wear", "Things with wheels", "Things you plug in", "Things at the beach", "Things you read",
-            "Things you throw", "Things with screens", "Jobs", "Hobbies", "Languages",
-            "Famous People", "Video Games", "Board Games", "Insects", "Birds",
-            "Reptiles", "Candy", "Snacks", "Drinks", "Desserts",
-            "Things in space", "Things underground", "Things in the ocean", "Tools", "Vehicles",
-            "Toys", "Spices", "Flowers", "Trees", "Things that are hot",
-            "Things that are cold", "Things with buttons", "Things in a hospital", "Things at a party", "Things in a forest",
-            "Superheroes", "Villains", "Things that fly", "Things that swim", "Things made of wood",
-            "Things you build", "Things you ride", "Things you catch", "Things you spin", "Things that bounce"
+            "Pizza Toppings", "Things that are green", "Countries", "Musical Instruments", "Sports", 
+            "Capital Cities", "Animals", "Things in a kitchen", "Fruits", "Vegetables", 
+            "Movies", "Fictional Characters", "Brands", "Things that are loud", "Things that are soft", 
+            "Things you wear", "Things with wheels", "Things you plug in", "Things at the beach", "Things you read", 
+            "Things you throw", "Things with screens", "Jobs", "Hobbies", "Languages", 
+            "Famous People", "Video Games", "Board Games", "Insects", "Birds", 
+            "Reptiles", "Candy", "Snacks", "Drinks", "Desserts", 
+            "Things in space", "Things underground", "Things in the ocean", "Tools", "Vehicles", 
+            "Toys", "Colors", "Spices", "Flowers", "Trees", 
+            "Rivers", "Mountains", "Things that are hot", "Things that are cold", "Things with buttons", 
+            "Things in a hospital", "Things at a party", "Things in a forest", "Things in the sky", "Things you open", 
+            "Things you close", "Things you write with", "Things you cut with", "Things that smell", "Things you fold", 
+            "Things you wash", "Things you lock", "Things with batteries", "Things that fly", "Things that swim", 
+            "Things that jump", "Things that crawl", "Things with tails", "Things with stripes", "Things with spots", 
+            "Things made of wood", "Things made of metal", "Things made of plastic", "Things made of glass", "Things made of paper", 
+            "Things you paint", "Things you build", "Things you climb", "Things you ride", "Things you drive", 
+            "Things you fly", "Things you push", "Things you pull", "Things you lift", "Things you drop", 
+            "Things you catch", "Things you kick", "Things you hit", "Things you bounce", "Things you spin", 
+            "Things you roll", "Things you stretch", "Things you squeeze", "Things you break", "Things you fix", 
+            "Things you lose", "Things you find", "Things you hide", "Things you seek", "Superheroes", "Villains",
+            "Has seeds", "Spicy food", "Fast food"
         ];
 
-        // Card colors - pastel pizzeria palette
-        const CARD_COLORS = [
-            { fill: '#FDE047', stroke: '#713f12', text: '#78350f' },   // yellow
-            { fill: '#fb923c', stroke: '#7c2d12', text: '#7c2d12' },   // orange
-            { fill: '#4ade80', stroke: '#14532d', text: '#14532d' },   // green
-            { fill: '#f472b6', stroke: '#831843', text: '#831843' },   // pink
-        ];
-
+        // Helper to draw random cards for the Triangle Layout
         const drawNewCards = (state) => {
             const shuffledLetters = [...LETTERS].sort(() => 0.5 - Math.random());
-            const shuffledCats = [...CATEGORIES].sort(() => 0.5 - Math.random());
-            // center card has 3 categories
-            state.categories = shuffledCats.slice(0, 3);
-            // 3 outer letter cards, each with 3 letters
-            state.letterCards = [
-                [shuffledLetters[0], shuffledLetters[1], shuffledLetters[2]],
-                [shuffledLetters[3], shuffledLetters[4], shuffledLetters[5]],
-                [shuffledLetters[6], shuffledLetters[7], shuffledLetters[8]],
-            ];
-        };
-
-        // ==========================================
-        // PIZZA TRIANGLE SVG COMPONENTS
-        // ==========================================
-
-        // Center card: equilateral triangle, categories on edges
-        // Pointing UP: top vertex, bottom-left, bottom-right
-        // Edge labels: top-left edge (cat 0), top-right edge (cat 1), bottom edge (cat 2)
-        const CenterPizzaCard = ({ categories, size = 180, wobble = false }) => {
-            const s = size;
-            // equilateral triangle pointing up
-            const cx = s / 2, cy = s / 2;
-            const r = s * 0.42;
-            const topY = cy - r;
-            const botY = cy + r * 0.5;
-            const leftX = cx - r * 0.866;
-            const rightX = cx + r * 0.866;
-
-            // midpoints of edges for label placement
-            const mid = (x1,y1,x2,y2,t=0.5) => ({ x: x1+(x2-x1)*t, y: y1+(y2-y1)*t });
-
-            // edge 0: top-left edge (top vertex to bottom-left)
-            const m0 = mid(cx,topY, leftX,botY);
-            // edge 1: top-right edge (top vertex to bottom-right)
-            const m1 = mid(cx,topY, rightX,botY);
-            // edge 2: bottom edge (bottom-left to bottom-right)
-            const m2 = mid(leftX,botY, rightX,botY);
-
-            // angles for rotated text
-            const angle0 = Math.atan2(botY-topY, leftX-cx) * 180/Math.PI; // ~-60
-            const angle1 = Math.atan2(botY-topY, rightX-cx) * 180/Math.PI; // ~60
-            const angle2 = 0;
-
-            // slight offset inward for readability
-            const off = 12;
-            const inward = (mx,my, ox,oy) => {
-                const dx=cx-mx, dy=cy-my;
-                const len=Math.sqrt(dx*dx+dy*dy)||1;
-                return { x: mx+dx/len*off, y: my+dy/len*off };
+            const shuffledCategories = [...CATEGORIES].sort(() => 0.5 - Math.random());
+            
+            state.categories = shuffledCategories.slice(0, 3); // [Top, Left, Right]
+            const drawn = shuffledLetters.slice(0, 9);
+            
+            state.letters = {
+                topCard: { active: drawn[0], l1: drawn[1], l2: drawn[2] },
+                leftCard: { active: drawn[3], l1: drawn[4], l2: drawn[5] },
+                rightCard: { active: drawn[6], l1: drawn[7], l2: drawn[8] },
             };
-            const p0 = inward(m0.x,m0.y);
-            const p1 = inward(m1.x,m1.y);
-            const p2 = { x: m2.x, y: m2.y - off };
-
-            const cats = categories || ['???','???','???'];
-
-            // doodle spots (cheese holes)
-            const spots = [
-                {cx: cx, cy: cy+r*0.05, r: r*0.07},
-                {cx: cx-r*0.3, cy: cy+r*0.18, r: r*0.055},
-                {cx: cx+r*0.32, cy: cy+r*0.15, r: r*0.065},
-            ];
-
-            return (
-                <svg width={s} height={s} viewBox={`0 0 ${s} ${s}`} className={`pizza-svg-card ${wobble?'wobble':''}`}>
-                    <defs>
-                        <filter id="cShadow">
-                            <feDropShadow dx="0" dy="3" stdDeviation="3" floodOpacity="0.25"/>
-                        </filter>
-                    </defs>
-                    {/* Triangle body */}
-                    <polygon
-                        points={`${cx},${topY} ${leftX},${botY} ${rightX},${botY}`}
-                        fill="#FDE047" stroke="#713f12" strokeWidth="4" strokeLinejoin="round"
-                        filter="url(#cShadow)"
-                    />
-                    {/* Cheese holes */}
-                    {spots.map((sp,i) => (
-                        <circle key={i} cx={sp.cx} cy={sp.cy} r={sp.r} fill="#fbbf24" opacity="0.7"/>
-                    ))}
-                    {/* Toppings dots */}
-                    {[{x:cx-r*0.15,y:topY+r*0.35},{x:cx+r*0.2,y:topY+r*0.3},{x:cx,y:botY-r*0.05}].map((d,i)=>(
-                        <circle key={i} cx={d.x} cy={d.y} r={r*0.045} fill="#ef4444" opacity="0.8"/>
-                    ))}
-                    {/* Edge category labels */}
-                    {[
-                        {p:p0, angle:angle0, cat:cats[0], color:'#ec4899'},
-                        {p:p1, angle:angle1, cat:cats[1], color:'#10b981'},
-                        {p:p2, angle:angle2, cat:cats[2], color:'#3b82f6'},
-                    ].map(({p,angle,cat,color},i) => {
-                        const fontSize = Math.max(7, s * 0.054);
-                        const maxW = r * 0.9;
-                        return (
-                            <g key={i} transform={`translate(${p.x},${p.y}) rotate(${angle})`}>
-                                <rect x={-maxW/2} y={-fontSize*0.9} width={maxW} height={fontSize*1.8}
-                                      rx="4" fill={color} opacity="0.9"/>
-                                <text
-                                    x="0" y={fontSize*0.38}
-                                    textAnchor="middle" fill="white"
-                                    fontFamily="Fredoka One, cursive"
-                                    fontSize={fontSize}
-                                    fontWeight="bold"
-                                >
-                                    {cat.length > 14 ? cat.slice(0,13)+'…' : cat}
-                                </text>
-                            </g>
-                        );
-                    })}
-                    {/* Center pizza icon */}
-                    <text x={cx} y={cy+r*0.08} textAnchor="middle" fontSize={r*0.38} style={{userSelect:'none'}}>🍕</text>
-                </svg>
-            );
         };
 
-        // Outer letter card: triangle pointing toward center with letters on edges
-        // rotation: 0 = pointing up (top neighbor), 1 = pointing bottom-left, 2 = pointing bottom-right
-        // The "inner edge" (closest to center card) will be marked
-        const OuterPizzaCard = ({ letters, rotation, colorIdx, size = 150, wobble = false }) => {
-            const s = size;
-            const cx = s/2, cy = s/2;
-            const r = s * 0.42;
-
-            // For rotation 0 (pointing UP, inner edge = bottom)
-            // rotate the whole thing based on rotation param
-            const rotDeg = rotation === 0 ? 0 : rotation === 1 ? 120 : 240;
-
-            const topY = cy - r;
-            const botY = cy + r * 0.5;
-            const leftX = cx - r * 0.866;
-            const rightX = cx + r * 0.866;
-
-            const col = CARD_COLORS[colorIdx % CARD_COLORS.length];
-
-            // Edges:
-            // edge 0: left edge (top to bottom-left) — letter[0]
-            // edge 1: right edge (top to bottom-right) — letter[1]
-            // edge 2: bottom edge (bottom-left to bottom-right) — INNER edge — letter[2]
-
-            const mid = (x1,y1,x2,y2,t=0.5) => ({ x: x1+(x2-x1)*t, y: y1+(y2-y1)*t });
-            const m0 = mid(cx,topY, leftX,botY);
-            const m1 = mid(cx,topY, rightX,botY);
-            const m2 = mid(leftX,botY, rightX,botY);
-
-            const inward = (mx,my, offset=10) => {
-                const dx=cx-mx, dy=cy-my;
-                const len=Math.sqrt(dx*dx+dy*dy)||1;
-                return { x: mx+dx/len*offset, y: my+dy/len*offset };
-            };
-
-            const fontSize = Math.max(14, s * 0.12);
-            const lsFontSize = fontSize * 1.4;
-            const lsColor = '#1e293b';
-
-            const edgeLabels = [
-                { p: inward(m0.x,m0.y,8), angle: Math.atan2(botY-topY, leftX-cx)*180/Math.PI, letter: letters?.[0]||'?' },
-                { p: inward(m1.x,m1.y,8), angle: Math.atan2(botY-topY, rightX-cx)*180/Math.PI, letter: letters?.[1]||'?' },
-                { p: { x: m2.x, y: m2.y - 10 }, angle: 0, letter: letters?.[2]||'?', isInner: true },
-            ];
-
-            const spots = [
-                {cx: cx-r*0.1, cy: cy-r*0.05, r2: r*0.07},
-                {cx: cx+r*0.2, cy: cy+r*0.12, r2: r*0.055},
-            ];
-
-            return (
-                <svg width={s} height={s} viewBox={`0 0 ${s} ${s}`}
-                     className={`pizza-svg-card ${wobble?'wobble':''}`}
-                     style={{transform:`rotate(${rotDeg}deg)`, transition:'transform 0.3s'}}>
-                    <defs>
-                        <filter id={`oShadow${colorIdx}`}>
-                            <feDropShadow dx="0" dy="3" stdDeviation="3" floodOpacity="0.2"/>
-                        </filter>
-                    </defs>
-                    <polygon
-                        points={`${cx},${topY} ${leftX},${botY} ${rightX},${botY}`}
-                        fill={col.fill} stroke={col.stroke} strokeWidth="3.5" strokeLinejoin="round"
-                        filter={`url(#oShadow${colorIdx})`}
-                    />
-                    {spots.map((sp,i)=>(
-                        <circle key={i} cx={sp.cx} cy={sp.cy} r={sp.r2} fill={col.stroke} opacity="0.2"/>
-                    ))}
-                    {/* Inner edge highlight */}
-                    <line x1={leftX} y1={botY} x2={rightX} y2={botY}
-                          stroke="white" strokeWidth="4" strokeDasharray="6 4" opacity="0.7"/>
-
-                    {edgeLabels.map(({p,angle,letter,isInner},i) => (
-                        <g key={i} transform={`translate(${p.x},${p.y}) rotate(${angle})`}>
-                            <circle r={lsFontSize*0.62} fill={isInner ? 'white' : col.stroke} opacity={isInner?0.95:0.85}/>
-                            <text x="0" y={lsFontSize*0.38}
-                                  textAnchor="middle" fill={isInner ? col.stroke : 'white'}
-                                  fontFamily="Fredoka One, cursive"
-                                  fontSize={lsFontSize}
-                                  fontWeight="bold">
-                                {letter}
-                            </text>
-                        </g>
-                    ))}
-                </svg>
-            );
-        };
-
-        // ============================
-        // FULL BOARD LAYOUT
-        // The center card is in the middle.
-        // 3 outer cards surround it:
-        //   - Card 0: above center, pointing down (rotated 180) → inner edge at bottom facing center top
-        //   - Card 1: bottom-left, pointing top-right
-        //   - Card 2: bottom-right, pointing top-left
-        //
-        // Each outer card's innermost letter (index 2) aligns with adjacent category edge of center.
-        // Outer card 0 bottom edge ↔ center card top-left edge (cat 0)
-        // Outer card 1 bottom edge ↔ center card top-right edge (cat 1)
-        // Outer card 2 bottom edge ↔ center card bottom edge (cat 2)
-        // ============================
-        const PizzaBoard = ({ categories, letterCards, animate }) => {
-            const isMobile = window.innerWidth < 640;
-            const cs = isMobile ? 130 : 160; // center size
-            const os = isMobile ? 110 : 135; // outer size
-            const gap = isMobile ? 8 : 12;
-
-            // Layout uses CSS grid trick - place SVGs absolutely around center
-            const boardSize = cs + os * 2 + gap * 2;
-
-            // positions for outer cards relative to board center
-            // Card rotations so their "inner edge" (bottom of unrotated triangle) faces center
-            // rot 0 = unrotated (inner edge = bottom) → place BELOW center
-            // rot 180 = flipped → inner edge at TOP → place ABOVE center
-            // rot 60 → inner edge at bottom-right → place to bottom-left of center
-            // rot 300 → inner edge at bottom-left → place to bottom-right of center
-
-            // Simpler approach: position cards around center using absolute positioning
-            const bw = cs * 1.8;
-            const bh = cs * 2.0;
-
-            return (
-                <div className="cards-appear relative flex items-center justify-center" 
-                     style={{width: bw, height: bh, margin: '0 auto'}}>
-                    
-                    {/* CENTER CARD */}
-                    <div style={{position:'absolute', left:'50%', top:'50%',
-                                 transform:'translate(-50%,-50%)', zIndex:10}}>
-                        <CenterPizzaCard categories={categories} size={cs} wobble={animate}/>
-                    </div>
-
-                    {/* TOP card (outer card 0) - rotated 180, inner edge faces down toward center top-left edge */}
-                    <div style={{position:'absolute', left:'50%', top: isMobile?'2%':'4%',
-                                 transform:'translate(-50%,0)', zIndex:5}}>
-                        <OuterPizzaCard letters={letterCards?.[0]} rotation={0}
-                                        colorIdx={1} size={os} wobble={animate}/>
-                        {/* Indicator: letter closest to center */}
-                        <div className="absolute bottom-1 left-1/2 -translate-x-1/2 text-xs font-black"
-                             style={{color: CARD_COLORS[1].stroke, background: 'white',
-                                     borderRadius:'8px', padding:'1px 6px', border:`2px solid ${CARD_COLORS[1].stroke}`,
-                                     fontSize:'10px', whiteSpace:'nowrap', opacity:0.9}}>
-                            ↕ {letterCards?.[0]?.[2]} = {categories?.[0]}
-                        </div>
-                    </div>
-
-                    {/* BOTTOM-LEFT card (outer card 1) */}
-                    <div style={{position:'absolute', left: isMobile?'2%':'3%', bottom: isMobile?'2%':'3%',
-                                 transform:'translate(0,0)', zIndex:5}}>
-                        <OuterPizzaCard letters={letterCards?.[1]} rotation={1}
-                                        colorIdx={2} size={os} wobble={animate}/>
-                        <div className="absolute top-1/2 right-0 translate-x-1/4 -translate-y-1/2 text-xs font-black"
-                             style={{color: CARD_COLORS[2].stroke, background: 'white',
-                                     borderRadius:'8px', padding:'1px 5px', border:`2px solid ${CARD_COLORS[2].stroke}`,
-                                     fontSize:'10px', whiteSpace:'nowrap', opacity:0.9}}>
-                            {letterCards?.[1]?.[2]}↔{categories?.[1]?.slice(0,8)}
-                        </div>
-                    </div>
-
-                    {/* BOTTOM-RIGHT card (outer card 2) */}
-                    <div style={{position:'absolute', right: isMobile?'2%':'3%', bottom: isMobile?'2%':'3%',
-                                 transform:'translate(0,0)', zIndex:5}}>
-                        <OuterPizzaCard letters={letterCards?.[2]} rotation={2}
-                                        colorIdx={3} size={os} wobble={animate}/>
-                        <div className="absolute top-1/2 left-0 -translate-x-1/4 -translate-y-1/2 text-xs font-black"
-                             style={{color: CARD_COLORS[3].stroke, background: 'white',
-                                     borderRadius:'8px', padding:'1px 5px', border:`2px solid ${CARD_COLORS[3].stroke}`,
-                                     fontSize:'10px', whiteSpace:'nowrap', opacity:0.9}}>
-                            {letterCards?.[2]?.[2]}↔{categories?.[2]?.slice(0,8)}
-                        </div>
-                    </div>
-                </div>
-            );
-        };
-
-        // ============================
-        // SCORE DISPLAY
-        // ============================
-        const ScoreBar = ({ players, activePlayerId }) => (
-            <div className="flex gap-2 overflow-x-auto pb-1 px-1">
-                {players.map(p => (
-                    <div key={p.id}
-                         className="flex-shrink-0 rounded-2xl px-3 py-2 flex flex-col items-center min-w-[80px]"
-                         style={{
-                             background: p.id === activePlayerId ? '#fef08a' : 'white',
-                             border: `3px solid ${p.id === activePlayerId ? '#eab308' : '#e2e8f0'}`,
-                             boxShadow: p.id === activePlayerId ? '0 0 0 3px #fde047' : 'none',
-                             transition: 'all 0.3s'
-                         }}>
-                        <span className="fredoka text-sm text-slate-700 truncate max-w-[70px]">{p.name}</span>
-                        <div className="flex gap-0.5 flex-wrap justify-center mt-1">
-                            {Array.from({length:9}).map((_,i)=>(
-                                <span key={i} style={{fontSize:'12px', opacity: i < p.score ? 1 : 0.15}}
-                                      className={i === p.score-1 ? 'slice-earned' : ''}>🍕</span>
-                            ))}
-                        </div>
-                    </div>
-                ))}
-            </div>
-        );
-
-        // ============================
-        // ANSWERING OVERLAY
-        // ============================
-        const AnsweringOverlay = ({ gameState, sendAction }) => {
-            const [text, setText] = useState('');
-            const [selectedCat, setSelectedCat] = useState(null);
-            const textRef = useRef('');
-            const catRef = useRef(null);
-            useEffect(() => { textRef.current = text; }, [text]);
-            useEffect(() => { catRef.current = selectedCat; }, [selectedCat]);
-
-            useEffect(() => {
-                const t = setTimeout(() => {
-                    sendAction('SUBMIT_ANSWER', { text: textRef.current, category: catRef.current });
-                }, 5000);
-                return () => clearTimeout(t);
-            }, []);
-
-            const handleSubmit = () => {
-                sendAction('SUBMIT_ANSWER', { text, category: selectedCat });
-            };
-
-            const cats = gameState.categories || [];
-            const catColors = ['#ec4899','#10b981','#3b82f6'];
-
-            return (
-                <div className="absolute inset-0 z-50 flex flex-col items-center justify-center p-4 text-center"
-                     style={{background:'rgba(15,23,42,0.92)'}}>
-                    <div className="overlay-slide bg-white rounded-3xl p-5 w-full max-w-sm"
-                         style={{border:'4px solid #fbbf24', boxShadow:'0 0 40px rgba(251,191,36,0.4)'}}>
-
-                        <div className="fredoka text-2xl text-slate-800 mb-3">Quick! Pick a category & type!</div>
-
-                        {/* Timer */}
-                        <div className="w-full bg-slate-200 h-4 rounded-full mb-4 overflow-hidden border-2 border-slate-300">
-                            <div className="timer-fill" style={{height:'100%',borderRadius:'9999px'}}/>
-                        </div>
-
-                        {/* Category buttons */}
-                        <div className="grid grid-cols-3 gap-2 mb-4">
-                            {cats.map((c, i) => (
-                                <button key={i}
-                                        className="vote-cat-btn"
-                                        style={{
-                                            background: selectedCat === i ? catColors[i] : 'white',
-                                            color: selectedCat === i ? 'white' : catColors[i],
-                                            borderColor: catColors[i],
-                                            boxShadow: selectedCat === i ? `0 4px 0 ${catColors[i]}88` : 'none',
-                                            transform: selectedCat === i ? 'translateY(2px)' : 'none',
-                                            fontSize: '0.75rem'
-                                        }}
-                                        onClick={() => setSelectedCat(i)}>
-                                    {c}
-                                </button>
-                            ))}
-                        </div>
-
-                        {/* Text input */}
-                        <input
-                            autoFocus
-                            className="answer-input mb-3"
-                            value={text}
-                            onChange={e => setText(e.target.value.toUpperCase())}
-                            placeholder="TYPE HERE..."
-                            autoComplete="off"
-                            maxLength={30}
-                        />
-
-                        <button
-                            onClick={handleSubmit}
-                            style={{
-                                background: selectedCat !== null && text.trim() ? '#22c55e' : '#94a3b8',
-                                color: 'white', width: '100%', padding: '0.75rem',
-                                borderRadius: '1rem', border: 'none',
-                                fontFamily: 'Fredoka One, cursive', fontSize: '1.4rem',
-                                cursor: selectedCat !== null && text.trim() ? 'pointer' : 'default',
-                                boxShadow: selectedCat !== null && text.trim() ? '0 4px 0 #15803d' : 'none',
-                                transition: 'all 0.2s'
-                            }}>
-                            Submit! 🍕
-                        </button>
-                    </div>
-                </div>
-            );
-        };
-
-        // ============================
-        // VOTING OVERLAY
-        // ============================
-        const VotingOverlay = ({ gameState, myId, sendAction }) => {
-            const { answerData, activePlayerId, players } = gameState;
-            const activePlayer = players.find(p => p.id === activePlayerId);
-            const amIActive = myId === activePlayerId;
-            const haveIVoted = gameState.votes.votedIds.includes(myId);
-            const cats = gameState.categories || [];
-            const catColors = ['#ec4899','#10b981','#3b82f6'];
-            const catIdx = answerData?.category;
-
-            const catDisplay = catIdx != null && cats[catIdx]
-                ? <span style={{color: catColors[catIdx]}} className="fredoka">{cats[catIdx]}</span>
-                : <span className="text-slate-400 fredoka">No category selected</span>;
-
-            return (
-                <div className="absolute inset-0 z-40 flex flex-col items-center justify-center p-4 text-center"
-                     style={{background:'rgba(15,23,42,0.95)'}}>
-                    <div className="overlay-slide bg-white rounded-3xl p-6 w-full max-w-sm"
-                         style={{border:'4px solid #fbbf24', boxShadow:'0 0 40px rgba(251,191,36,0.3)'}}>
-
-                        <div className="absolute -top-5 left-1/2 -translate-x-1/2 fredoka text-white px-5 py-1.5 rounded-full text-sm"
-                             style={{background:'#f97316', border:'3px solid white', boxShadow:'0 4px 8px rgba(0,0,0,0.2)'}}>
-                            🗳️ VOTING TIME
-                        </div>
-
-                        <div className="fredoka text-xl text-slate-600 mt-2 mb-1">{activePlayer?.name} says:</div>
-
-                        <div className="fredoka text-3xl text-slate-900 bg-amber-50 rounded-2xl p-3 mb-2"
-                             style={{border:'3px solid #fde047', letterSpacing:'0.05em'}}>
-                            "{answerData?.text || '???'}"
-                        </div>
-
-                        <div className="text-sm mb-4 text-slate-500">
-                            Category: {catDisplay}
-                        </div>
-
-                        {!amIActive && !haveIVoted && (
-                            <>
-                                <p className="font-extrabold text-slate-600 mb-3 text-sm">
-                                    Does this match the category using that letter?
-                                </p>
-
-                                {/* Category vote buttons */}
-                                <div className="grid grid-cols-3 gap-2 mb-3">
-                                    {cats.map((c, i) => (
-                                        <button key={i}
-                                                className="vote-cat-btn"
-                                                style={{
-                                                    background: catIdx === i ? catColors[i] : '#f1f5f9',
-                                                    color: catIdx === i ? 'white' : '#64748b',
-                                                    borderColor: catColors[i],
-                                                    fontSize: '0.7rem',
-                                                    opacity: catIdx !== null && catIdx !== i ? 0.45 : 1
-                                                }}
-                                                onClick={() => sendAction('VOTE', { vote: 'yes', category: i })}>
-                                            {c}
-                                        </button>
-                                    ))}
-                                </div>
-
-                                <div className="flex gap-3">
-                                    <button onClick={() => sendAction('VOTE', { vote: 'no' })}
-                                            className="flex-1 font-black text-lg rounded-2xl p-3 transition active:scale-95"
-                                            style={{background:'#fee2e2', color:'#dc2626', border:'3px solid #fca5a5',
-                                                    fontFamily:'Fredoka One, cursive'}}>
-                                        NO ❌
-                                    </button>
-                                    <button onClick={() => sendAction('VOTE', { vote: 'yes', category: catIdx })}
-                                            className="flex-1 font-black text-lg rounded-2xl p-3 transition active:scale-95"
-                                            style={{background:'#dcfce7', color:'#16a34a', border:'3px solid #86efac',
-                                                    fontFamily:'Fredoka One, cursive'}}>
-                                        YES ✅
-                                    </button>
-                                </div>
-                            </>
-                        )}
-
-                        {(amIActive || haveIVoted) && (
-                            <div className="py-6">
-                                <div className="w-12 h-12 rounded-full border-4 border-yellow-400 border-t-transparent spin mx-auto mb-3"/>
-                                <p className="font-extrabold text-slate-500">Waiting for votes...</p>
-                                <p className="text-sm text-slate-400 mt-1">✅ {gameState.votes.yes} | ❌ {gameState.votes.no}</p>
-                            </div>
-                        )}
-                    </div>
-                </div>
-            );
-        };
-
-        // ============================
-        // BACKGROUND DOODLES
-        // ============================
-        const BgDoodles = () => {
-            const doodles = ['🍕','🧀','🍅','🌿','🫑','🍄','🧄','🫒','🥩','🌶️'];
-            const positions = [
-                {top:'5%',left:'3%',delay:'0s',size:'2.8rem'},
-                {top:'12%',right:'5%',delay:'1.2s',size:'2.2rem'},
-                {top:'35%',left:'1%',delay:'2s',size:'3rem'},
-                {top:'55%',right:'2%',delay:'0.7s',size:'2.5rem'},
-                {top:'75%',left:'4%',delay:'1.8s',size:'2rem'},
-                {top:'85%',right:'6%',delay:'0.3s',size:'2.8rem'},
-                {top:'22%',left:'92%',delay:'2.5s',size:'2rem'},
-                {top:'65%',left:'95%',delay:'1s',size:'2.4rem'},
-            ];
-            return (
-                <div className="bg-doodle">
-                    {positions.map((pos, i) => (
-                        <span key={i} className="doodle-item"
-                              style={{...pos, fontSize:pos.size, animationDelay:pos.delay}}>
-                            {doodles[i % doodles.length]}
-                        </span>
-                    ))}
-                </div>
-            );
-        };
-
-        // ============================
-        // MAIN APP
-        // ============================
         const App = () => {
-            const [appState, setAppState] = useState('home');
-            const [role, setRole] = useState(null);
+            const [appState, setAppState] = useState('home'); 
+            const [role, setRole] = useState(null); 
             const [name, setName] = useState('');
             const [roomCode, setRoomCode] = useState('');
             const [myId, setMyId] = useState('');
             const [toast, setToast] = useState(null);
-            const [boardAnimKey, setBoardAnimKey] = useState(0);
 
             const [gameState, setGameState] = useState({
-                players: [],
-                status: 'waiting',
+                players: [], 
+                status: 'waiting', 
+                letters: null,
                 categories: [],
-                letterCards: [],
                 activePlayerId: null,
                 answerData: null,
                 votes: { yes: 0, no: 0, votedIds: [] },
@@ -757,8 +131,8 @@
             });
 
             const peerRef = useRef(null);
-            const connsRef = useRef([]);
-            const connRef = useRef(null);
+            const connsRef = useRef([]); 
+            const connRef = useRef(null); 
             const hostStateRef = useRef(gameState);
             const hostTimerRef = useRef(null);
 
@@ -771,12 +145,12 @@
                 modifier(hostStateRef.current);
                 const newState = JSON.parse(JSON.stringify(hostStateRef.current));
                 setGameState(newState);
-                connsRef.current.forEach(c => { try { c.send({ type: 'SYNC', payload: newState }); } catch(e){} });
+                connsRef.current.forEach(c => c.send({ type: 'SYNC', payload: newState }));
             };
 
             const broadcastToast = (msg) => {
                 showToast(msg);
-                connsRef.current.forEach(c => { try { c.send({ type: 'TOAST', payload: msg }); } catch(e){} });
+                connsRef.current.forEach(c => c.send({ type: 'TOAST', payload: msg }));
             };
 
             const handlePeerData = (senderId, data) => {
@@ -795,25 +169,26 @@
                             draft.status = 'answering';
                             draft.activePlayerId = senderId;
                         });
+                        // Allow 6.5s on server side to account for 5s CSS animation + network latency
                         hostTimerRef.current = setTimeout(() => {
-                            broadcastToast("⏰ Time's up!");
+                            broadcastToast("Time's up! No answer submitted.");
                             updateHostState(draft => {
                                 draft.status = 'playing';
                                 draft.activePlayerId = null;
                                 drawNewCards(draft);
                             });
-                            setBoardAnimKey(k => k+1);
                         }, 6500);
                         break;
                     case 'SUBMIT_ANSWER':
                         if (s.status !== 'answering' || s.activePlayerId !== senderId) return;
                         clearTimeout(hostTimerRef.current);
-                        if (!data.payload.text || data.payload.text.trim() === '') {
+                        
+                        if (!data.payload.text || data.payload.text.trim() === '' || !data.payload.category) {
                             broadcastToast("Blank answer rejected!");
                             updateHostState(draft => { draft.status = 'playing'; drawNewCards(draft); });
-                            setBoardAnimKey(k => k+1);
                             return;
                         }
+
                         updateHostState(draft => {
                             draft.status = 'voting';
                             draft.answerData = data.payload;
@@ -822,202 +197,377 @@
                         break;
                     case 'VOTE':
                         if (s.status !== 'voting' || s.votes.votedIds.includes(senderId)) return;
-                        let pass = false, fail = false;
+                        
+                        let pass = false;
+                        let fail = false;
+
                         updateHostState(draft => {
                             draft.votes.votedIds.push(senderId);
-                            if (data.payload.vote === 'yes') draft.votes.yes++;
+                            if (data.payload === 'yes') draft.votes.yes++;
                             else draft.votes.no++;
+
                             const votersRequired = draft.players.length > 1 ? draft.players.length - 1 : 1;
-                            if (draft.votes.no > 0) fail = true;
-                            else if (draft.votes.yes >= votersRequired) pass = true;
+
+                            if (draft.votes.no > 0) {
+                                fail = true;
+                            } else if (draft.votes.yes >= votersRequired) {
+                                pass = true;
+                            }
                         });
+
                         if (fail) {
-                            broadcastToast("❌ The lobby rejected that!");
+                            broadcastToast("The lobby rejected the answer! ❌");
                             setTimeout(() => {
                                 updateHostState(draft => { draft.status = 'playing'; drawNewCards(draft); });
-                                setBoardAnimKey(k => k+1);
-                            }, 2500);
+                            }, 3000);
                         } else if (pass) {
                             const p = s.players.find(x => x.id === s.activePlayerId);
-                            broadcastToast(`🍕 ${p?.name} earned a slice!`);
+                            broadcastToast(`Unanimous! ${p.name} earned a slice! 🍕`);
                             setTimeout(() => {
                                 updateHostState(draft => {
-                                    const pl = draft.players.find(x => x.id === s.activePlayerId);
-                                    if (pl) {
-                                        pl.score++;
-                                        if (pl.score >= 9) {
-                                            draft.status = 'gameover';
-                                            draft.winner = pl;
-                                        } else {
-                                            draft.status = 'playing';
-                                            drawNewCards(draft);
-                                        }
+                                    const playerToUpdate = draft.players.find(x => x.id === s.activePlayerId);
+                                    playerToUpdate.score++;
+                                    if (playerToUpdate.score >= 9) {
+                                        draft.status = 'gameover';
+                                        draft.winner = playerToUpdate;
+                                    } else {
+                                        draft.status = 'playing';
+                                        drawNewCards(draft);
                                     }
                                 });
-                                setBoardAnimKey(k => k+1);
-                            }, 2500);
+                            }, 3000);
                         }
                         break;
                 }
             };
 
             const createRoom = () => {
-                if (!name.trim()) return alert("Enter your name first!");
+                if (!name.trim()) return alert("Enter your name!");
                 setAppState('loading');
-                const code = Math.random().toString(36).substring(2,6).toUpperCase();
+                const code = Math.random().toString(36).substring(2, 6).toUpperCase();
                 const hostId = `P4P-${code}`;
+                
                 const peer = new Peer(hostId);
                 peer.on('open', (id) => {
-                    setMyId(id); setRoomCode(code); setRole('host'); setAppState('lobby');
+                    setMyId(id);
+                    setRoomCode(code);
+                    setRole('host');
+                    setAppState('lobby');
+                    
                     updateHostState(draft => {
                         draft.players = [{ id, name, score: 0 }];
                         drawNewCards(draft);
                     });
                 });
+
                 peer.on('connection', (conn) => {
-                    conn.on('data', d => handlePeerData(conn.peer, d));
-                    conn.on('open', () => connsRef.current.push(conn));
+                    conn.on('data', (data) => handlePeerData(conn.peer, data));
+                    conn.on('open', () => { connsRef.current.push(conn); });
                     conn.on('close', () => {
                         connsRef.current = connsRef.current.filter(c => c.peer !== conn.peer);
                         updateHostState(draft => {
                             draft.players = draft.players.filter(p => p.id !== conn.peer);
                             if (draft.status === 'voting' && draft.players.length <= 1) {
-                                draft.status = 'playing'; drawNewCards(draft);
+                                draft.status = 'playing';
+                                drawNewCards(draft);
                             }
                         });
                     });
                 });
-                peer.on('error', () => { alert("Connection error!"); setAppState('home'); });
+                
+                peer.on('error', (err) => {
+                    alert("Error: " + err.type);
+                    setAppState('home');
+                });
                 peerRef.current = peer;
             };
 
-            const joinRoom = (code) => {
-                if (!name.trim()) return alert("Enter your name first!");
-                if (!code.trim()) return alert("Enter a room code!");
+            const joinRoom = (codeToJoin) => {
+                if (!name.trim()) return alert("Enter your name!");
+                if (!codeToJoin.trim()) return alert("Enter a room code!");
+                
                 setAppState('loading');
-                const hostId = `P4P-${code.toUpperCase()}`;
+                const hostId = `P4P-${codeToJoin.toUpperCase()}`;
+                
                 const peer = new Peer();
                 peer.on('open', (id) => {
                     setMyId(id);
                     const conn = peer.connect(hostId);
+                    
                     conn.on('open', () => {
-                        connRef.current = conn; setRole('peer');
-                        setRoomCode(code.toUpperCase()); setAppState('lobby');
+                        connRef.current = conn;
+                        setRole('peer');
+                        setRoomCode(codeToJoin.toUpperCase());
+                        setAppState('lobby');
                         conn.send({ type: 'JOIN', payload: { name } });
                     });
-                    conn.on('data', d => {
-                        if (d.type === 'SYNC') {
-                            setGameState(d.payload);
-                            if (d.payload.status !== 'waiting') setAppState('game');
-                        } else if (d.type === 'TOAST') showToast(d.payload);
+                    
+                    conn.on('data', (data) => {
+                        if (data.type === 'SYNC') {
+                            setGameState(data.payload);
+                            if (data.payload.status !== 'waiting' && appState === 'lobby') {
+                                setAppState('game');
+                            }
+                        }
+                        else if (data.type === 'TOAST') showToast(data.payload);
                     });
-                    conn.on('close', () => { alert("Host disconnected."); window.location.reload(); });
+                    
+                    conn.on('close', () => {
+                        alert("Host disconnected.");
+                        window.location.reload();
+                    });
                 });
-                peer.on('error', () => { alert("Couldn't connect. Check room code!"); setAppState('home'); });
+
+                peer.on('error', (err) => {
+                    alert("Could not connect. Is the room code correct?");
+                    setAppState('home');
+                });
                 peerRef.current = peer;
             };
 
             const sendAction = (type, payload) => {
-                if (role === 'host') handlePeerData(myId, { type, payload });
-                else if (connRef.current) connRef.current.send({ type, payload });
+                if (role === 'host') {
+                    handlePeerData(myId, { type, payload });
+                } else if (connRef.current) {
+                    connRef.current.send({ type, payload });
+                }
             };
 
             const startGame = () => {
                 if (role !== 'host') return;
-                setAppState('game');
+                setAppState('game'); 
                 updateHostState(draft => {
                     draft.status = 'playing';
                     draft.players.forEach(p => p.score = 0);
                     draft.winner = null;
-                    drawNewCards(draft);
                 });
-                setBoardAnimKey(k => k+1);
             };
 
-            const restartGame = () => {
-                if (role !== 'host') return;
-                setAppState('game');
-                updateHostState(draft => {
-                    draft.status = 'playing';
-                    draft.players.forEach(p => p.score = 0);
-                    draft.winner = null;
-                    drawNewCards(draft);
-                });
-                setBoardAnimKey(k => k+1);
+            // --- SVG HELPERS ---
+            const SvgText = ({ x, y, angle, text, fontSize, isBold }) => {
+                const words = text.split(' ');
+                let line1 = text, line2 = '';
+                if (text.length > 11 && words.length > 1) {
+                    const mid = Math.ceil(words.length / 2);
+                    line1 = words.slice(0, mid).join(' ');
+                    line2 = words.slice(mid).join(' ');
+                }
+                return (
+                    <text x={x} y={y} transform={`rotate(${angle} ${x} ${y})`} textAnchor="middle" dominantBaseline="middle" fontSize={fontSize} fontWeight={isBold ? '900' : '700'} fill="#1e293b">
+                        {line2 ? (
+                            <>
+                                <tspan x={x} dy="-0.6em">{line1}</tspan>
+                                <tspan x={x} dy="1.2em">{line2}</tspan>
+                            </>
+                        ) : text}
+                    </text>
+                );
             };
 
-            // Join code ref for mobile
-            const joinCodeRef = useRef(null);
+            const PizzaBoard = () => {
+                const { categories, letters } = gameState;
+                if (!letters || !letters.topCard) return null;
 
-            // ---- HOME ----
-            if (appState === 'loading') return (
-                <div className="h-screen flex flex-col items-center justify-center bg-yellow-400">
-                    <BgDoodles/>
-                    <div className="relative z-10 text-center">
-                        <div className="spin w-16 h-16 rounded-full border-8 border-white border-t-orange-500 mx-auto mb-4"/>
-                        <div className="fredoka text-2xl text-white">Connecting...</div>
+                return (
+                    <div className="w-full max-w-[500px] mx-auto animate-popup drop-shadow-2xl p-2 select-none pointer-events-none">
+                        <svg viewBox="0 0 500 450" className="w-full h-auto overflow-visible">
+                            <defs>
+                                <filter id="shadow">
+                                    <feDropShadow dx="0" dy="8" stdDeviation="6" floodOpacity="0.2"/>
+                                </filter>
+                            </defs>
+                            
+                            <g filter="url(#shadow)">
+                                {/* Top Card (Yellow) */}
+                                <polygon points="150,230 350,230 250,56.8" fill="#ffcc00" stroke="#1e293b" strokeWidth="12" strokeLinejoin="round" />
+                                <SvgText x={250} y={205} angle={0} text={letters.topCard.active} fontSize="46" isBold={true} />
+                                <SvgText x={210} y={110} angle={-60} text={letters.topCard.l1} fontSize="32" isBold={true} />
+                                <SvgText x={290} y={110} angle={60} text={letters.topCard.l2} fontSize="32" isBold={true} />
+
+                                {/* Left Card (Yellow) */}
+                                <polygon points="150,230 250,403.2 50,403.2" fill="#ffcc00" stroke="#1e293b" strokeWidth="12" strokeLinejoin="round" />
+                                <SvgText x={175} y={316.6} angle={60} text={letters.leftCard.active} fontSize="46" isBold={true} />
+                                <SvgText x={150} y={380} angle={0} text={letters.leftCard.l1} fontSize="32" isBold={true} />
+                                <SvgText x={85} y={316.6} angle={-60} text={letters.leftCard.l2} fontSize="32" isBold={true} />
+
+                                {/* Right Card (Yellow) */}
+                                <polygon points="350,230 250,403.2 450,403.2" fill="#ffcc00" stroke="#1e293b" strokeWidth="12" strokeLinejoin="round" />
+                                <SvgText x={325} y={316.6} angle={-60} text={letters.rightCard.active} fontSize="46" isBold={true} />
+                                <SvgText x={350} y={380} angle={0} text={letters.rightCard.l1} fontSize="32" isBold={true} />
+                                <SvgText x={415} y={316.6} angle={60} text={letters.rightCard.l2} fontSize="32" isBold={true} />
+
+                                {/* Center Card Inner Colored Slices */}
+                                <polygon points="150,230 350,230 250,287.7" fill="#ffb3ba" />
+                                <polygon points="150,230 250,403.2 250,287.7" fill="#baffc9" />
+                                <polygon points="350,230 250,403.2 250,287.7" fill="#ffe680" />
+                                
+                                {/* Center Card Categories */}
+                                <SvgText x={250} y={245} angle={180} text={categories[0]} fontSize="15" isBold={false} />
+                                <SvgText x={220} y={310} angle={60} text={categories[1]} fontSize="15" isBold={false} />
+                                <SvgText x={280} y={310} angle={-60} text={categories[2]} fontSize="15" isBold={false} />
+
+                                {/* Center Card Outer Thick Outline + Dividers */}
+                                <polygon points="150,230 350,230 250,403.2" fill="none" stroke="#1e293b" strokeWidth="12" strokeLinejoin="round" />
+                                <line x1="150" y1="230" x2="250" y2="287.7" stroke="#1e293b" strokeWidth="5" strokeLinecap="round" />
+                                <line x1="350" y1="230" x2="250" y2="287.7" stroke="#1e293b" strokeWidth="5" strokeLinecap="round" />
+                                <line x1="250" y1="403.2" x2="250" y2="287.7" stroke="#1e293b" strokeWidth="5" strokeLinecap="round" />
+                            </g>
+                        </svg>
                     </div>
-                </div>
-            );
+                );
+            };
 
-            if (appState === 'home') return (
-                <div className="h-screen flex flex-col items-center justify-center relative"
-                     style={{background:'linear-gradient(135deg,#fef08a 0%,#fb923c 100%)'}}>
-                    <BgDoodles/>
-                    <div className="relative z-10 w-full max-w-sm px-4">
-                        <div className="bg-white rounded-3xl p-6 shadow-2xl"
-                             style={{border:'4px solid #1e293b', transform:'rotate(-0.5deg)'}}>
-                            {/* Logo */}
-                            <div className="text-center mb-5">
-                                <div style={{fontSize:'3.5rem', lineHeight:1}} className="mb-1">🍕</div>
-                                <div className="fredoka text-5xl text-slate-900" style={{letterSpacing:'-0.02em', lineHeight:1.1}}>
-                                    P for Pizza
+            // --- OVERLAYS ---
+            const AnsweringOverlay = () => {
+                const [text, setText] = useState('');
+                const { categories, letters } = gameState;
+                
+                useEffect(() => {
+                    // Strictly enforce 5 second timer client-side
+                    const t = setTimeout(() => {
+                        sendAction('SUBMIT_ANSWER', { text: '', category: null, letter: null });
+                    }, 5000);
+                    return () => clearTimeout(t);
+                }, []);
+
+                const handleSubmit = (catIndex, letterObj) => {
+                    sendAction('SUBMIT_ANSWER', { 
+                        text, 
+                        category: categories[catIndex], 
+                        letter: letterObj.active 
+                    });
+                };
+
+                return (
+                    <div className="absolute inset-0 z-50 bg-slate-900/90 flex flex-col items-center justify-center p-6 text-center animate-[slideIn_0.2s]">
+                        <h2 className="text-white text-3xl font-black mb-4 uppercase tracking-wider">Quick! 5 Seconds!</h2>
+                        
+                        {/* 5-Second Timer Bar */}
+                        <div className="w-full max-w-md bg-slate-700 h-6 rounded-full mb-6 overflow-hidden border-4 border-white shadow-xl">
+                            <div className="bg-red-500 h-full timer-bar"></div>
+                        </div>
+                        
+                        <div className="w-full max-w-md flex flex-col gap-4">
+                            <input
+                                autoFocus
+                                className="p-4 text-3xl font-bold rounded-2xl w-full text-center outline-none border-4 border-slate-300 shadow-[0_0_20px_rgba(255,255,255,0.2)] uppercase focus:border-yellow-400 focus:ring-0"
+                                value={text}
+                                onChange={e => setText(e.target.value.toUpperCase())}
+                                placeholder="TYPE WORD HERE..."
+                                autoComplete="off"
+                            />
+
+                            <h3 className="text-yellow-400 font-bold mt-2">THEN CLICK YOUR CATEGORY:</h3>
+                            
+                            {/* 3 Buttons corresponding to the 3 slices */}
+                            <div className="grid grid-cols-1 gap-3">
+                                <button onClick={() => handleSubmit(0, letters.topCard)} className="bg-[#ffb3ba] hover:bg-[#ff9aa3] border-4 border-[#1e293b] text-slate-900 p-4 rounded-2xl font-black text-xl shadow-lg transform active:scale-95 transition">
+                                    {categories[0]} ({letters.topCard.active})
+                                </button>
+                                <button onClick={() => handleSubmit(1, letters.leftCard)} className="bg-[#baffc9] hover:bg-[#9bf2b0] border-4 border-[#1e293b] text-slate-900 p-4 rounded-2xl font-black text-xl shadow-lg transform active:scale-95 transition">
+                                    {categories[1]} ({letters.leftCard.active})
+                                </button>
+                                <button onClick={() => handleSubmit(2, letters.rightCard)} className="bg-[#ffe680] hover:bg-[#ffd740] border-4 border-[#1e293b] text-slate-900 p-4 rounded-2xl font-black text-xl shadow-lg transform active:scale-95 transition">
+                                    {categories[2]} ({letters.rightCard.active})
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                );
+            };
+
+            const VotingOverlay = () => {
+                const { answerData, activePlayerId, players } = gameState;
+                const activePlayer = players.find(p => p.id === activePlayerId);
+                const amIActive = myId === activePlayerId;
+                const haveIVoted = gameState.votes.votedIds.includes(myId);
+
+                return (
+                    <div className="absolute inset-0 z-40 bg-slate-900/95 flex flex-col items-center justify-center p-6 text-center animate-[slideIn_0.2s]">
+                        <div className="bg-white p-8 rounded-3xl shadow-2xl max-w-md w-full relative border-4 border-slate-900">
+                            <div className="absolute -top-6 left-1/2 transform -translate-x-1/2 bg-yellow-400 text-slate-900 font-black px-6 py-2 rounded-full border-4 border-slate-900 shadow-md uppercase text-xl">
+                                Voting Time
+                            </div>
+                            
+                            <h3 className="text-xl font-bold text-slate-500 mb-4">{activePlayer?.name} answered:</h3>
+                            
+                            <div className="bg-slate-100 p-4 rounded-2xl border-4 border-slate-200 mb-6">
+                                <div className="text-4xl font-black text-blue-600 mb-2 break-words">
+                                    "{answerData?.text || '???'}"
                                 </div>
-                                <div className="text-sm font-extrabold text-orange-500 uppercase tracking-widest mt-1">
-                                    The Easy Cheesy Letter Game
+                                <div className="text-lg font-bold text-slate-600">
+                                    For Category: <span className="text-slate-900">{answerData?.category}</span>
+                                </div>
+                                <div className="text-lg font-bold text-slate-600">
+                                    Starting Letter: <span className="text-slate-900">{answerData?.letter}</span>
                                 </div>
                             </div>
 
-                            <div className="space-y-4">
-                                <div>
-                                    <label className="block text-xs font-black uppercase text-slate-400 mb-1 tracking-widest">
-                                        Your Name
-                                    </label>
-                                    <input
-                                        className="w-full p-3 rounded-2xl text-lg font-black outline-none"
-                                        style={{border:'3px solid #e2e8f0', fontFamily:'Fredoka One, cursive'}}
-                                        value={name} onChange={e => setName(e.target.value)}
-                                        placeholder="e.g. Mario" maxLength={15}
-                                        onFocus={e => e.target.style.borderColor='#fbbf24'}
-                                        onBlur={e => e.target.style.borderColor='#e2e8f0'}
-                                    />
+                            {!amIActive && !haveIVoted && (
+                                <div className="space-y-4 mt-2">
+                                    <p className="font-bold text-slate-800 text-lg">Is this answer acceptable?</p>
+                                    <div className="flex gap-4">
+                                        <button onClick={() => sendAction('VOTE', 'no')} className="flex-1 bg-red-500 hover:bg-red-600 text-white border-b-4 border-red-700 p-4 rounded-2xl font-black text-2xl transition transform active:scale-95 active:border-b-0 active:translate-y-1">
+                                            NO ❌
+                                        </button>
+                                        <button onClick={() => sendAction('VOTE', 'yes')} className="flex-1 bg-green-500 hover:bg-green-600 text-white border-b-4 border-green-700 p-4 rounded-2xl font-black text-2xl transition transform active:scale-95 active:border-b-0 active:translate-y-1">
+                                            YES ✅
+                                        </button>
+                                    </div>
                                 </div>
+                            )}
 
-                                <button onClick={createRoom}
-                                        className="w-full p-4 rounded-2xl text-white transition active:scale-95"
-                                        style={{background:'#1e293b', fontFamily:'Fredoka One, cursive',
-                                                fontSize:'1.3rem', boxShadow:'0 6px 0 #0f172a',
-                                                border:'none', cursor:'pointer'}}>
-                                    🎮 Create New Game
+                            {(amIActive || haveIVoted) && (
+                                <div className="py-6">
+                                    <div className="w-12 h-12 border-8 border-yellow-400 border-t-slate-900 rounded-full animate-spin mx-auto mb-4"></div>
+                                    <p className="font-bold text-slate-500 text-xl">Waiting for the lobby...</p>
+                                    <p className="text-lg mt-2 font-black">
+                                        ✅ {gameState.votes.yes} &nbsp;|&nbsp; ❌ {gameState.votes.no}
+                                    </p>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                );
+            };
+
+            // --- VIEWS ---
+            if (appState === 'loading') return <div className="h-full flex items-center justify-center font-bold text-2xl text-slate-500 animate-pulse">Connecting to server...</div>;
+
+            if (appState === 'home') return (
+                <div className="flex flex-col items-center justify-center h-full p-6 bg-yellow-400 text-slate-900">
+                    <div className="bg-white p-8 rounded-[2rem] shadow-[0_10px_0_#1e293b] w-full max-w-md text-center border-4 border-slate-900 animate-popup">
+                        <div className="text-7xl mb-2 drop-shadow-md">🍕</div>
+                        <h1 className="text-5xl font-black mb-8 uppercase tracking-tighter transform -rotate-2 text-red-500" style={{ textShadow: '2px 2px 0 #1e293b' }}>P for Pizza</h1>
+                        
+                        <div className="space-y-6 text-left">
+                            <div>
+                                <label className="block font-bold mb-2 uppercase text-slate-500">Your Name</label>
+                                <input 
+                                    className="w-full border-4 border-slate-300 p-4 rounded-2xl font-bold text-xl focus:border-yellow-400 outline-none transition"
+                                    value={name} onChange={e => setName(e.target.value)} placeholder="e.g. Mario" maxLength={12}
+                                />
+                            </div>
+                            
+                            <hr className="border-slate-200 border-2 rounded" />
+
+                            <div className="flex flex-col gap-3">
+                                <button onClick={createRoom} className="w-full bg-slate-900 text-white font-black uppercase text-xl p-4 rounded-2xl hover:bg-slate-800 transition transform hover:-translate-y-1 shadow-[0_6px_0_#475569] active:shadow-none active:translate-y-1">
+                                    Create New Game
                                 </button>
-
-                                <div className="flex items-center gap-3">
-                                    <div className="flex-1 border-t-2 border-slate-200"/>
-                                    <span className="text-xs font-black text-slate-400 uppercase tracking-widest">or</span>
-                                    <div className="flex-1 border-t-2 border-slate-200"/>
+                                
+                                <div className="relative flex items-center py-2">
+                                    <div className="flex-grow border-t-4 border-slate-100"></div>
+                                    <span className="flex-shrink-0 mx-4 text-slate-300 font-black uppercase">OR</span>
+                                    <div className="flex-grow border-t-4 border-slate-100"></div>
                                 </div>
 
                                 <div className="flex gap-2">
-                                    <input ref={joinCodeRef}
-                                           className="flex-1 p-3 rounded-2xl text-xl text-center font-black uppercase outline-none"
-                                           style={{border:'3px solid #e2e8f0', fontFamily:'Fredoka One, cursive',
-                                                   letterSpacing:'0.15em'}}
-                                           placeholder="ROOM CODE" maxLength={4}/>
-                                    <button onClick={() => joinRoom(joinCodeRef.current?.value || '')}
-                                            className="px-5 rounded-2xl text-white active:scale-95 transition"
-                                            style={{background:'#f97316', fontFamily:'Fredoka One, cursive',
-                                                    fontSize:'1rem', boxShadow:'0 4px 0 #c2410c',
-                                                    border:'none', cursor:'pointer'}}>
+                                    <input 
+                                        className="w-full border-4 border-slate-300 p-4 rounded-2xl font-black text-xl text-center uppercase focus:border-yellow-400 outline-none transition placeholder-slate-300"
+                                        id="joinCode" placeholder="CODE" maxLength={4}
+                                    />
+                                    <button onClick={() => joinRoom(document.getElementById('joinCode').value)} className="bg-orange-500 text-white font-black uppercase px-6 rounded-2xl hover:bg-orange-600 transition shadow-[0_6px_0_#c2410c] active:shadow-none active:translate-y-1 text-xl">
                                         Join
                                     </button>
                                 </div>
@@ -1027,156 +577,118 @@
                 </div>
             );
 
-            // ---- LOBBY ----
             if (appState === 'lobby') return (
-                <div className="h-screen flex flex-col items-center justify-center p-4 relative"
-                     style={{background:'linear-gradient(135deg,#fef08a 0%,#fb923c 100%)'}}>
-                    <BgDoodles/>
-                    <div className="relative z-10 w-full max-w-sm">
-                        <div className="bg-white rounded-3xl shadow-2xl overflow-hidden"
-                             style={{border:'4px solid #1e293b'}}>
-                            {/* Room code banner */}
-                            <div className="py-4 text-center" style={{background:'#fde047', borderBottom:'3px solid #1e293b'}}>
-                                <div className="text-xs font-black uppercase text-slate-600 tracking-widest">Room Code</div>
-                                <div className="fredoka text-5xl text-slate-900 tracking-widest">{roomCode}</div>
-                            </div>
+                <div className="flex flex-col items-center justify-center h-full p-6 bg-slate-50">
+                    <div className="bg-white p-8 rounded-3xl shadow-xl w-full max-w-md text-center border-4 border-slate-900 relative overflow-hidden animate-popup">
+                        
+                        <div className="bg-yellow-400 absolute top-0 left-0 right-0 py-4 border-b-4 border-slate-900">
+                            <p className="font-bold text-slate-800 uppercase text-sm tracking-widest">Room Code</p>
+                            <h2 className="text-5xl font-black tracking-widest text-slate-900 mt-1">{roomCode}</h2>
+                        </div>
 
-                            <div className="p-5">
-                                <div className="font-black text-slate-400 uppercase text-xs tracking-widest mb-3">
-                                    Players ({gameState.players.length})
-                                </div>
-                                <div className="flex flex-col gap-2 mb-5 max-h-48 overflow-y-auto">
-                                    {gameState.players.map(p => (
-                                        <div key={p.id} className="flex items-center justify-between rounded-2xl px-4 py-3"
-                                             style={{background:'#f8fafc', border:'2px solid #e2e8f0'}}>
-                                            <span className="fredoka text-lg">{p.name} {p.id === myId && '(You)'}</span>
-                                            {p.id === gameState.players[0]?.id &&
-                                                <span className="text-xs font-black bg-yellow-200 text-yellow-800 px-2 py-1 rounded-lg uppercase">Host</span>}
-                                        </div>
-                                    ))}
-                                </div>
-
-                                {role === 'host' ? (
-                                    <button onClick={startGame}
-                                            className="w-full py-4 rounded-2xl text-white active:scale-95 transition"
-                                            style={{background:'#22c55e', fontFamily:'Fredoka One, cursive',
-                                                    fontSize:'1.5rem', boxShadow:'0 6px 0 #15803d',
-                                                    border:'none', cursor:'pointer'}}>
-                                        Start Game 🍕
-                                    </button>
-                                ) : (
-                                    <div className="text-center fredoka text-xl text-slate-400 py-4 animate-pulse">
-                                        Waiting for host...
+                        <div className="mt-32 mb-8">
+                            <h3 className="font-black text-xl text-slate-400 uppercase mb-4 text-left border-b-4 pb-2">Players Lobby ({gameState.players.length})</h3>
+                            <div className="flex flex-col gap-3">
+                                {gameState.players.map(p => (
+                                    <div key={p.id} className="flex items-center justify-between bg-slate-100 p-4 rounded-2xl border-2 border-slate-200">
+                                        <span className="font-bold text-xl">{p.name} {p.id === myId && <span className="text-slate-400">(You)</span>}</span>
+                                        {p.id === gameState.players[0].id && <span className="text-sm bg-yellow-400 px-3 py-1 rounded-xl font-black text-slate-900 uppercase">Host</span>}
                                     </div>
-                                )}
+                                ))}
                             </div>
                         </div>
+
+                        {role === 'host' ? (
+                            <button onClick={startGame} className="w-full bg-green-500 text-white font-black text-2xl p-4 rounded-2xl hover:bg-green-600 transition transform hover:-translate-y-1 shadow-[0_6px_0_#15803d] active:shadow-none active:translate-y-1 uppercase">
+                                Start Game 🍕
+                            </button>
+                        ) : (
+                            <div className="p-4 bg-slate-100 rounded-2xl border-4 border-slate-200 font-bold text-slate-500 animate-pulse text-lg">
+                                Waiting for Host to start...
+                            </div>
+                        )}
                     </div>
                 </div>
             );
 
-            // ---- GAME ----
+            // GAME VIEW
             if (appState === 'game') return (
-                <div className="h-screen flex flex-col relative overflow-hidden" style={{background:'#fffbe6'}}>
-                    <BgDoodles/>
-
-                    {/* Header */}
-                    <header className="flex-shrink-0 bg-white z-10 px-3 py-2"
-                            style={{borderBottom:'3px solid #fde047', boxShadow:'0 2px 12px rgba(0,0,0,0.06)'}}>
-                        <ScoreBar players={gameState.players} activePlayerId={gameState.activePlayerId}/>
+                <div className="flex flex-col h-full bg-[#f8fafc] relative">
+                    {/* Header / Scores */}
+                    <header className="bg-white border-b-4 border-slate-900 p-3 shadow-md z-10 flex-shrink-0">
+                        <div className="flex overflow-x-auto gap-3 pb-1 hide-scrollbar">
+                            {gameState.players.map(p => (
+                                <div key={p.id} className={`flex flex-col border-4 rounded-2xl p-2 min-w-[130px] transition-colors ${p.id === gameState.activePlayerId ? 'border-yellow-400 bg-yellow-50' : 'border-slate-200 bg-slate-50'}`}>
+                                    <span className="font-black text-sm text-slate-700 truncate">{p.name}</span>
+                                    <div className="flex space-x-0.5 mt-1">
+                                        {[...Array(9)].map((_, i) => (
+                                            <span key={i} className={`text-lg ${i < p.score ? 'opacity-100' : 'opacity-20 grayscale'}`}>🍕</span>
+                                        ))}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
                     </header>
 
-                    {/* Main */}
-                    <main className="flex-grow overflow-y-auto flex flex-col items-center justify-center relative z-0 py-2 px-2">
-
+                    {/* Main Board Area */}
+                    <main className="flex-grow p-4 md:p-8 flex flex-col justify-center relative z-0 overflow-hidden">
                         {gameState.status === 'gameover' ? (
-                            <div className="overlay-slide text-center bg-white p-8 rounded-3xl w-full max-w-sm mx-auto"
-                                 style={{border:'4px solid #fde047', boxShadow:'0 0 40px rgba(251,191,36,0.4)'}}>
-                                <div style={{fontSize:'4rem'}}>🏆🍕</div>
-                                <div className="fredoka text-4xl text-slate-900 mt-2">{gameState.winner?.name}</div>
-                                <div className="fredoka text-2xl text-orange-500 mb-6">WINS THE PIZZA!</div>
+                            <div className="text-center bg-white p-8 rounded-[2rem] shadow-2xl border-8 border-yellow-400 max-w-lg mx-auto w-full animate-popup">
+                                <h1 className="text-7xl mb-4 animate-bounce">🏆🍕</h1>
+                                <h2 className="text-5xl font-black text-slate-800 mb-2">{gameState.winner.name} WINS!</h2>
+                                <p className="text-2xl text-slate-500 font-bold mb-8">A true Pizza Master.</p>
                                 {role === 'host' && (
-                                    <button onClick={restartGame}
-                                            className="w-full py-4 rounded-2xl text-white active:scale-95 transition"
-                                            style={{background:'#1e293b', fontFamily:'Fredoka One, cursive',
-                                                    fontSize:'1.3rem', boxShadow:'0 6px 0 #0f172a',
-                                                    border:'none', cursor:'pointer'}}>
-                                        Play Again 🔄
+                                    <button onClick={() => updateHostState(d => { d.status='playing'; d.players.forEach(p=>p.score=0); drawNewCards(d); })} className="bg-slate-900 text-white font-black p-4 px-8 rounded-2xl text-2xl uppercase shadow-[0_6px_0_#475569] active:shadow-none active:translate-y-1 transition w-full">
+                                        Play Again
                                     </button>
                                 )}
                             </div>
                         ) : (
-                            <>
-                                <div className="text-center mb-2">
-                                    <span className="fredoka text-sm text-slate-500">
-                                        Match the inner letter to the adjacent category!
-                                    </span>
-                                </div>
-                                <div key={boardAnimKey}>
-                                    <PizzaBoard
-                                        categories={gameState.categories}
-                                        letterCards={gameState.letterCards}
-                                        animate={true}
-                                    />
-                                </div>
-                            </>
+                            <PizzaBoard />
                         )}
                     </main>
 
-                    {/* Buzz button */}
+                    {/* Buzzer Area */}
                     {gameState.status === 'playing' && (
-                        <div className="flex-shrink-0 p-4 safe-bottom z-10 flex justify-center"
-                             style={{background:'white', borderTop:'3px solid #fde047'}}>
-                            <button
-                                className="buzz-btn"
-                                style={{width:'min(180px, 45vw)', height:'min(180px, 45vw)',
-                                        fontSize:'min(2.2rem, 7vw)'}}
+                        <div className="p-4 md:p-6 bg-white border-t-4 border-slate-900 z-10 flex-shrink-0 flex justify-center pb-8 md:pb-6 shadow-[0_-10px_20px_rgba(0,0,0,0.05)]">
+                            <button 
                                 onClick={() => sendAction('BUZZ')}
-                                onMouseDown={e => e.currentTarget.classList.add('bouncing')}
-                                onAnimationEnd={e => e.currentTarget.classList.remove('bouncing')}>
+                                className="hover-wobble bg-red-500 hover:bg-red-600 text-white font-black text-5xl uppercase py-6 px-12 rounded-[2rem] w-full max-w-sm border-4 border-[#7f1d1d] shadow-[0_10px_0_#991b1b] active:shadow-none active:translate-y-2 transition-all tracking-wider"
+                            >
                                 BUZZ!
                             </button>
                         </div>
                     )}
 
                     {/* Overlays */}
-                    {gameState.status === 'answering' && gameState.activePlayerId === myId && (
-                        <AnsweringOverlay gameState={gameState} sendAction={sendAction}/>
-                    )}
+                    {gameState.status === 'answering' && gameState.activePlayerId === myId && <AnsweringOverlay />}
                     {gameState.status === 'answering' && gameState.activePlayerId !== myId && (
-                        <div className="absolute inset-0 z-40 flex flex-col items-center justify-center"
-                             style={{background:'rgba(15,23,42,0.85)'}}>
-                            <div className="overlay-slide text-center p-6">
-                                <div className="spin w-16 h-16 rounded-full border-8 border-yellow-400 border-t-transparent mx-auto mb-4"/>
-                                <div className="fredoka text-3xl text-white">
-                                    {gameState.players.find(p=>p.id===gameState.activePlayerId)?.name} is typing...
-                                </div>
-                            </div>
+                        <div className="absolute inset-0 z-40 bg-slate-900/90 flex flex-col items-center justify-center p-6 text-center">
+                            <div className="w-20 h-20 border-8 border-yellow-400 border-t-transparent rounded-full animate-spin mb-6"></div>
+                            <h2 className="text-white text-4xl font-black uppercase">
+                                {gameState.players.find(p => p.id === gameState.activePlayerId)?.name} is typing...
+                            </h2>
                         </div>
                     )}
-                    {gameState.status === 'voting' && (
-                        <VotingOverlay gameState={gameState} myId={myId} sendAction={sendAction}/>
-                    )}
+
+                    {gameState.status === 'voting' && <VotingOverlay />}
 
                     {/* Toast */}
                     {toast && (
-                        <div className="absolute top-20 left-1/2 z-50 pointer-events-none"
-                             style={{transform:'translateX(-50%)'}}>
-                            <div className="toast-pop fredoka text-lg text-white px-6 py-3 rounded-full"
-                                 style={{background:'#1e293b', border:'3px solid #fde047',
-                                         boxShadow:'0 8px 24px rgba(0,0,0,0.3)', whiteSpace:'nowrap'}}>
+                        <div className="absolute top-24 left-1/2 transform -translate-x-1/2 z-50 pointer-events-none w-full max-w-sm px-4">
+                            <div className="bg-slate-900 text-white px-6 py-4 rounded-2xl shadow-2xl font-black text-xl text-center toast-enter border-4 border-slate-700">
                                 {toast}
                             </div>
                         </div>
                     )}
                 </div>
             );
-
+            
             return null;
         };
 
         const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<App/>);
+        root.render(<App />);
     </script>
 </body>
 </html>
