@@ -369,7 +369,8 @@
                 if (!letters || !letters.topCard) return null;
 
                 return (
-                    <div className="w-full max-w-[500px] mx-auto animate-popup drop-shadow-2xl p-2 select-none pointer-events-none">
+                    // Increased max-w from 500px to 650px to make the triangle cards render bigger on screen
+                    <div className="w-full max-w-[650px] mx-auto animate-popup drop-shadow-2xl p-2 select-none pointer-events-none">
                         <svg viewBox="0 0 500 450" className="w-full h-auto overflow-visible">
                             <defs>
                                 <filter id="shadow">
@@ -380,31 +381,31 @@
                             <g filter="url(#shadow)">
                                 {/* Top Card (Yellow) */}
                                 <polygon points="150,230 350,230 250,56.8" fill="#ffcc00" stroke="#1e293b" strokeWidth="12" strokeLinejoin="round" />
-                                <SvgText x={250} y={202} angle={0} text={letters.topCard.active} fontSize="46" isBold={true} />
-                                <SvgText x={219} y={154} angle={-60} text={letters.topCard.l1} fontSize="32" isBold={true} />
-                                <SvgText x={281} y={154} angle={60} text={letters.topCard.l2} fontSize="32" isBold={true} />
+                                <SvgText x={250} y={202} angle={0} text={letters.topCard.active} fontSize="42" isBold={true} />
+                                <SvgText x={219} y={154} angle={-60} text={letters.topCard.l1} fontSize="28" isBold={true} />
+                                <SvgText x={281} y={154} angle={60} text={letters.topCard.l2} fontSize="28" isBold={true} />
 
                                 {/* Left Card (Yellow) */}
                                 <polygon points="150,230 250,403.2 50,403.2" fill="#ffcc00" stroke="#1e293b" strokeWidth="12" strokeLinejoin="round" />
-                                <SvgText x={176} y={331} angle={60} text={letters.leftCard.active} fontSize="46" isBold={true} />
-                                <SvgText x={150} y={381} angle={0} text={letters.leftCard.l1} fontSize="32" isBold={true} />
-                                <SvgText x={119} y={328} angle={-60} text={letters.leftCard.l2} fontSize="32" isBold={true} />
+                                <SvgText x={176} y={331} angle={60} text={letters.leftCard.active} fontSize="42" isBold={true} />
+                                <SvgText x={150} y={381} angle={0} text={letters.leftCard.l1} fontSize="28" isBold={true} />
+                                <SvgText x={119} y={328} angle={-60} text={letters.leftCard.l2} fontSize="28" isBold={true} />
 
                                 {/* Right Card (Yellow) */}
                                 <polygon points="350,230 250,403.2 450,403.2" fill="#ffcc00" stroke="#1e293b" strokeWidth="12" strokeLinejoin="round" />
-                                <SvgText x={324} y={331} angle={-60} text={letters.rightCard.active} fontSize="46" isBold={true} />
-                                <SvgText x={350} y={381} angle={0} text={letters.rightCard.l1} fontSize="32" isBold={true} />
-                                <SvgText x={381} y={328} angle={60} text={letters.rightCard.l2} fontSize="32" isBold={true} />
+                                <SvgText x={324} y={331} angle={-60} text={letters.rightCard.active} fontSize="42" isBold={true} />
+                                <SvgText x={350} y={381} angle={0} text={letters.rightCard.l1} fontSize="28" isBold={true} />
+                                <SvgText x={381} y={328} angle={60} text={letters.rightCard.l2} fontSize="28" isBold={true} />
 
                                 {/* Center Card Inner Colored Slices */}
                                 <polygon points="150,230 350,230 250,287.7" fill="#ffb3ba" />
                                 <polygon points="150,230 250,403.2 250,287.7" fill="#baffc9" />
                                 <polygon points="350,230 250,403.2 250,287.7" fill="#ffe680" />
                                 
-                                {/* Center Card Categories */}
-                                <SvgText x={250} y={245} angle={180} text={categories[0]} fontSize="15" isBold={false} />
-                                <SvgText x={220} y={310} angle={60} text={categories[1]} fontSize="15" isBold={false} />
-                                <SvgText x={280} y={310} angle={-60} text={categories[2]} fontSize="15" isBold={false} />
+                                {/* Center Card Categories: Coordinates placed at the exact geometric centroid of each inner triangle and font size reduced from 15 to 13 */}
+                                <SvgText x={250} y={249} angle={180} text={categories[0]} fontSize="13" isBold={false} />
+                                <SvgText x={217} y={307} angle={60} text={categories[1]} fontSize="13" isBold={false} />
+                                <SvgText x={283} y={307} angle={-60} text={categories[2]} fontSize="13" isBold={false} />
 
                                 {/* Center Card Outer Thick Outline + Dividers */}
                                 <polygon points="150,230 350,230 250,403.2" fill="none" stroke="#1e293b" strokeWidth="12" strokeLinejoin="round" />
