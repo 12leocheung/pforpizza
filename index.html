@@ -301,15 +301,24 @@
                         setAppState('lobby');
                         conn.send({ type: 'JOIN', payload: { name } });
                     });
-                    
+                                        
                     conn.on('data', (data) => {
                         if (data.type === 'SYNC') {
                             setGameState(data.payload);
-                            if (data.payload.status !== 'waiting' && appState === 'lobby') {
+                    
+                            // Move into game whenever the host starts
+                            if (
+                                data.payload.status === 'playing' ||
+                                data.payload.status === 'answering' ||
+                                data.payload.status === 'voting' ||
+                                data.payload.status === 'gameover'
+                            ) {
                                 setAppState('game');
                             }
                         }
-                        else if (data.type === 'TOAST') showToast(data.payload);
+                        else if (data.type === 'TOAST') {
+                            showToast(data.payload);
+                        }
                     });
                     
                     conn.on('close', () => {
